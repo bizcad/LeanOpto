@@ -9,11 +9,12 @@
     "environment": "backtesting",
 
     // algorithm class selector
-    "algorithm-type-name": "BasicTemplateAlgorithm",
+    //"algorithm-type-name": "BasicTemplateAlgorithm",
+    "algorithm-type-name": "Test2Algorithm",
 
     // Algorithm language selector - options CSharp, FSharp, VisualBasic, Python, Java
-    "algorithm-language": "CSharp", 
-	
+    "algorithm-language": "CSharp",
+
     //Physical DLL location
     "algorithm-location": "QuantConnect.Algorithm.CSharp.dll",
     //"algorithm-location": "QuantConnect.Algorithm.Python.dll",
@@ -21,9 +22,16 @@
     //"algorithm-location": "QuantConnect.Algorithm.VisualBasic.dll",
     //"algorithm-location": "QuantConnect.Algorithm.Java.dll",
 
+    // Lib Location
+    "ironpython-location": "../ironpython/Lib",
+
+    // time loop location
+    "algorithm-manager-time-loop-maximum":  "10.0",
     // engine
     //"data-folder": "../../../Data/",
     "data-folder": "H:\\GoogleFinanceData\\",
+
+    "plugin-directory": "",
 
     // handlers
     "log-handler": "QuantConnect.Logging.CompositeLogHandler",
@@ -31,10 +39,10 @@
     "job-queue-handler": "QuantConnect.Queues.JobQueue",
     "api-handler": "QuantConnect.Api.Api",
 
-	// if one uses "true" as string in following token, market hours
-	// will remain open all hours and all days.
-	// Any other string beside "true" will make lean operate 
-	// only during regular market hours.
+    // if one uses "true" as string in following token, market hours
+    // will remain open all hours and all days.
+    // Any other string beside "true" will make lean operate
+    // only during regular market hours.
     "force-exchange-always-open": "false",
 
     // interactive brokers configuration

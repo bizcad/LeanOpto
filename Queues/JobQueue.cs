@@ -59,7 +59,7 @@ namespace QuantConnect.Queues
         public AlgorithmNodePacket NextJob(out string location)
         {
             location = AlgorithmLocation;
-            Log.Trace("JobQueue.NextJob(): Selected " + location);
+            //Log.Trace("JobQueue.NextJob(): Selected " + location);
 
             //If this isn't a backtesting mode/request, attempt a live job.
             if (_liveMode)

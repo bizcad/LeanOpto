@@ -187,6 +187,7 @@
     <Compile Include="RealTime\BacktestingRealTimeHandler.cs" />
     <Compile Include="RealTime\IRealTimeHandler.cs" />
     <Compile Include="RealTime\ScheduledEventFactory.cs" />
+    <Compile Include="Results\OptimizationResultHandler.cs" />
     <Compile Include="Results\DesktopResultHandler.cs" />
     <Compile Include="Results\IResultHandler.cs" />
     <Compile Include="Setup\BrokerageSetupHandler.cs" />

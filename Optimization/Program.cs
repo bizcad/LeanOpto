@@ -26,82 +26,82 @@ using GAF.Operators;
 
 namespace Optimization
 {
-	public class RunClass: MarshalByRefObject
-	{
-		private Api _api;
-		private Messaging _notify;
-		private JobQueue _jobQueue;
-		private IResultHandler _resultshandler;
+    public class RunClass : MarshalByRefObject
+    {
+        private Api _api;
+        private Messaging _notify;
+        private JobQueue _jobQueue;
+        private IResultHandler _resultshandler;
 
-		private FileSystemDataFeed _dataFeed;
-		private ConsoleSetupHandler _setup;
-		private BacktestingRealTimeHandler _realTime;
-		private ITransactionHandler _transactions;
-		private IHistoryProvider _historyProvider;
+        private FileSystemDataFeed _dataFeed;
+        private ConsoleSetupHandler _setup;
+        private BacktestingRealTimeHandler _realTime;
+        private ITransactionHandler _transactions;
+        private IHistoryProvider _historyProvider;
 
-		private readonly Engine _engine;
+        private readonly Engine _engine;
 
-		public RunClass()
-		{
-			
-		}
-		public decimal Run(int val)
-		{
-			Config.Set ("EMA_VAR1", val.ToString(CultureInfo.InvariantCulture));
-            Log.LogHandler = Composer.Instance.GetExportedValueByTypeName<ILogHandler>(Config.Get("log-handler", "CompositeLogHandler"));
-		    
-			LaunchLean ();
-			//_resultsHandler = _engine.AlgorithmHandlers.Results;
-			if (_resultshandler != null) {
-                var dsktophandler = (ConsoleResultHandler)_resultshandler;
-				var sharpe_ratio = 0.0m;
-				var ratio = dsktophandler.FinalStatistics ["Sharpe Ratio"];
-				Decimal.TryParse(ratio,out sharpe_ratio);
-				//_engine = null;
-				return sharpe_ratio;
-			}
-			return -1.0m;
-		}
-		private void LaunchLean()
-		{
-			
-			Config.Set ("environment", "backtesting");
-			string algorithm = "EMATest";
+        public RunClass()
+        {
 
-			Config.Set("algorithm-type-name", algorithm);
-		    //string datapath = Config.Get("data-folder");
-			_jobQueue = new JobQueue (); 
-			_notify = new Messaging ();
-			_api = new Api();
-            _resultshandler = new ConsoleResultHandler();
-			_dataFeed = new FileSystemDataFeed ();
-			_setup = new ConsoleSetupHandler ();
-			_realTime = new BacktestingRealTimeHandler ();
-			_historyProvider = new SubscriptionDataReaderHistoryProvider ();
-			_transactions = new BacktestingTransactionHandler ();
+        }
+        public decimal Run(int val)
+        {
+            Config.Set("EMA_VAR1", val.ToString(CultureInfo.InvariantCulture));
+            //Log.LogHandler = Composer.Instance.GetExportedValueByTypeName<ILogHandler>(Config.Get("log-handler", "CompositeLogHandler"));
 
-			var systemHandlers = new LeanEngineSystemHandlers (_jobQueue, _api, _notify);
-			systemHandlers.Initialize ();
+            LaunchLean();
+            
+            if (_resultshandler != null)
+            {
+                var dsktophandler = (OptimizationResultHandler)_resultshandler;
+                //var dsktophandler = (ConsoleResultHandler)_resultshandler;
+                var sharpe_ratio = 0.0m;
+                string ratio = "0";
+                if (dsktophandler.FinalStatistics.Count > 0)
+                {
+                    ratio = dsktophandler.FinalStatistics["Sharpe Ratio"];
+                    Decimal.TryParse(ratio, out sharpe_ratio);
+                }
+                //_engine = null;
+                return sharpe_ratio;
+            }
+            return -1.0m;
+        }
+        private void LaunchLean()
+        {
 
-            LeanEngineAlgorithmHandlers leanEngineAlgorithmHandlers;
+            Config.Set("environment", "backtesting");
+            string algorithm = "EMATest";
+
+            Config.Set("algorithm-type-name", algorithm);
+            //string datapath = Config.Get("data-folder");
+            _jobQueue = new JobQueue();
+            _notify = new Messaging();
+            _api = new Api();
+            _resultshandler = new OptimizationResultHandler();
+            //_resultshandler = new ConsoleResultHandler();
+            _dataFeed = new FileSystemDataFeed();
+            _setup = new ConsoleSetupHandler();
+            _realTime = new BacktestingRealTimeHandler();
+            _historyProvider = new SubscriptionDataReaderHistoryProvider();
+            _transactions = new BacktestingTransactionHandler();
+            Log.LogHandler = (ILogHandler)new FileLogHandler();
+            Log.DebuggingEnabled = true;
+            Log.DebuggingLevel = 0;
+
+            var systemHandlers = new LeanEngineSystemHandlers(_jobQueue, _api, _notify);
+            systemHandlers.Initialize();
+
+            var algorithmHandlers = new LeanEngineAlgorithmHandlers(_resultshandler, _setup, _dataFeed, _transactions, _realTime, _historyProvider);
+            string algorithmPath;
+            
+            AlgorithmNodePacket job = systemHandlers.JobQueue.NextJob(out algorithmPath);
             try
             {
-                leanEngineAlgorithmHandlers = LeanEngineAlgorithmHandlers.FromConfiguration(Composer.Instance);
-                _resultshandler = leanEngineAlgorithmHandlers.Results;
-            }
-            catch (CompositionException compositionException)
-            {
-                Log.Error("Engine.Main(): Failed to load library: " + compositionException);
-                throw;
-            }
-			var algorithmHandlers = new LeanEngineAlgorithmHandlers (_resultshandler, _setup, _dataFeed, _transactions, _realTime, _historyProvider);
-            string algorithmPath;
-            AlgorithmNodePacket job =  systemHandlers.JobQueue.NextJob(out algorithmPath);
-		    try
-		    {
                 var _engine = new Engine(systemHandlers, algorithmHandlers, Config.GetBool("live-mode"));
-		        _engine.Run(job, algorithmPath);
-		    }
+                _engine.Run(job, algorithmPath);
+            }
             finally
             {
                 //Delete the message from the job queue:
@@ -114,181 +114,181 @@ namespace Optimization
                 Log.LogHandler.Dispose();
             }
 
-		}
+        }
 
-	}
-	class MainClass
-	{
-		//private static RunClass rc;
-	    private static int runnumber = 0;
-		private static AppDomainSetup _ads;
-		private static string _callingDomainName;
-		private static string _exeAssembly;
-		public static void Main (string[] args)
-		{
-            
-                
+    }
+    class MainClass
+    {
+        //private static RunClass rc;
+        private static int runnumber = 0;
+        private static AppDomainSetup _ads;
+        private static string _callingDomainName;
+        private static string _exeAssembly;
+        public static void Main(string[] args)
+        {
+
+
             //Initialize:
             string mode = "RELEASE";
             var liveMode = Config.GetBool("live-mode");
-            Log.DebuggingEnabled = Config.GetBool("debug-mode");
+            
 
-#if DEBUG 
-                mode = "DEBUG";
+#if DEBUG
+            mode = "DEBUG";
 #endif
 
 
-//			Console.WriteLine("Running " + algorithm + "...");
-			Config.Set("live-mode", "false");
-			Config.Set("messaging-handler", "QuantConnect.Messaging.Messaging");
-			Config.Set("job-queue-handler", "QuantConnect.Queues.JobQueue");
-			Config.Set("api-handler", "QuantConnect.Api.Api");
+            //			Console.WriteLine("Running " + algorithm + "...");
+            Config.Set("live-mode", "false");
+            Config.Set("messaging-handler", "QuantConnect.Messaging.Messaging");
+            Config.Set("job-queue-handler", "QuantConnect.Queues.JobQueue");
+            Config.Set("api-handler", "QuantConnect.Api.Api");
+            //Config.Set("result-handler", "QuantConnect.Lean.Engine.Results.OptimizationResultHandler");
             Config.Set("result-handler", "QuantConnect.Lean.Engine.Results.ConsoleResultHandler");
-			Config.Set ("EMA_VAR1", "10");
-		
-			_ads = SetupAppDomain ();
+            Config.Set("EMA_VAR1", "10");
+
+            _ads = SetupAppDomain();
 
 
-			//rc = new RunClass();
-			const double crossoverProbability = 0.65;
-			const double mutationProbability = 0.08;
-			const int elitismPercentage = 5;
+            //rc = new RunClass();
+            const double crossoverProbability = 0.65;
+            const double mutationProbability = 0.08;
+            const int elitismPercentage = 5;
 
-			//create the population
-			//var population = new Population(100, 44, false, false);
+            //create the population
+            //var population = new Population(100, 44, false, false);
 
-			var population = new Population();
+            var population = new Population();
 
-			//create the chromosomes
-			for (var p = 0; p < 10; p++)
-			{
-
-				var chromosome = new Chromosome();
-				for (int i = 0; i < 10; i++)
-					chromosome.Genes.Add (new Gene (i));
-				chromosome.Genes.ShuffleFast();
-				population.Solutions.Add(chromosome);
-			}
-
+            //create the chromosomes
+            for (var p = 0; p < 100; p++)
+            {
+                var chromosome = new Chromosome();
+                for (int i = 0; i < 100; i++)
+                    chromosome.Genes.Add(new Gene(i));
+                chromosome.Genes.ShuffleFast();
+                population.Solutions.Add(chromosome);
+            }
 
 
-			//create the genetic operators 
-			var elite = new Elite(elitismPercentage);
 
-			var crossover = new Crossover(crossoverProbability, true)
-			{
-				CrossoverType = CrossoverType.SinglePoint
-			};
+            //create the genetic operators 
+            var elite = new Elite(elitismPercentage);
 
-			var mutation = new BinaryMutate(mutationProbability, true);
+            var crossover = new Crossover(crossoverProbability, true)
+            {
+                CrossoverType = CrossoverType.SinglePoint
+            };
 
-			//create the GA itself 
-			var ga = new GeneticAlgorithm(population, CalculateFitness);
+            var mutation = new BinaryMutate(mutationProbability, true);
 
-			//subscribe to the GAs Generation Complete event 
-			ga.OnGenerationComplete += ga_OnGenerationComplete;
+            //create the GA itself 
+            var ga = new GeneticAlgorithm(population, CalculateFitness);
 
-			//add the operators to the ga process pipeline 
-			ga.Operators.Add(elite);
-			ga.Operators.Add(crossover);
-			ga.Operators.Add(mutation);
+            //subscribe to the GAs Generation Complete event 
+            ga.OnGenerationComplete += ga_OnGenerationComplete;
 
-			//run the GA 
-			ga.Run(Terminate);
-		}
-		static AppDomainSetup SetupAppDomain()
-		{
-			_callingDomainName = Thread.GetDomain().FriendlyName;
-			//Console.WriteLine(callingDomainName);
+            //add the operators to the ga process pipeline 
+            ga.Operators.Add(elite);
+            ga.Operators.Add(crossover);
+            ga.Operators.Add(mutation);
 
-			// Get and display the full name of the EXE assembly.
-			_exeAssembly = Assembly.GetEntryAssembly().FullName;
-			//Console.WriteLine(exeAssembly);
+            //run the GA 
+            ga.Run(Terminate);
+        }
+        static AppDomainSetup SetupAppDomain()
+        {
+            _callingDomainName = Thread.GetDomain().FriendlyName;
+            //Console.WriteLine(callingDomainName);
 
-			// Construct and initialize settings for a second AppDomain.
-			AppDomainSetup ads = new AppDomainSetup();
-			ads.ApplicationBase = AppDomain.CurrentDomain.BaseDirectory;
+            // Get and display the full name of the EXE assembly.
+            _exeAssembly = Assembly.GetEntryAssembly().FullName;
+            //Console.WriteLine(exeAssembly);
 
-			ads.DisallowBindingRedirects = false;
-			ads.DisallowCodeDownload = true;
-			ads.ConfigurationFile = 
-				AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-			return ads;
-		}
+            // Construct and initialize settings for a second AppDomain.
+            AppDomainSetup ads = new AppDomainSetup();
+            ads.ApplicationBase = AppDomain.CurrentDomain.BaseDirectory;
 
-		static RunClass CreateRunClassInAppDomain(ref AppDomain ad)
-		{
-			
-			// Create the second AppDomain.
-			var name = Guid.NewGuid().ToString("x");
-			ad = AppDomain.CreateDomain(name, null, _ads);
+            ads.DisallowBindingRedirects = false;
+            ads.DisallowCodeDownload = true;
+            ads.ConfigurationFile =
+                AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+            return ads;
+        }
 
-			// Create an instance of MarshalbyRefType in the second AppDomain. 
-			// A proxy to the object is returned.
-			RunClass rc = 
-				(RunClass) ad.CreateInstanceAndUnwrap(
-					_exeAssembly, 
-					typeof(RunClass).FullName
-				);
+        static RunClass CreateRunClassInAppDomain(ref AppDomain ad)
+        {
 
-			return rc;
-		}
+            // Create the second AppDomain.
+            var name = Guid.NewGuid().ToString("x");
+            ad = AppDomain.CreateDomain(name, null, _ads);
 
-		static void ga_OnRunComplete(object sender, GaEventArgs e)
-		{
-			var fittest = e.Population.GetTop(1)[0];
-			foreach (var gene in fittest.Genes)
-			{
-				Console.WriteLine((int)gene.RealValue);
-			}
-		}
+            // Create an instance of MarshalbyRefType in the second AppDomain. 
+            // A proxy to the object is returned.
+            RunClass rc =
+                (RunClass)ad.CreateInstanceAndUnwrap(
+                    _exeAssembly,
+                    typeof(RunClass).FullName
+                );
 
-		private static void ga_OnGenerationComplete(object sender, GaEventArgs e)
-		{
-			var fittest = e.Population.GetTop(1)[0];
-			var sharpe = RunAlgorithm(fittest);
-			Console.WriteLine("Generation: {0}, Fitness: {1},Distance: {2}", e.Generation, fittest.Fitness, sharpe);                
-		}
+            return rc;
+        }
 
-		public static double CalculateFitness(Chromosome chromosome)
-		{
-			var sharpe = RunAlgorithm(chromosome);
-			return sharpe;
-		}
+        static void ga_OnRunComplete(object sender, GaEventArgs e)
+        {
+            var fittest = e.Population.GetTop(1)[0];
+            foreach (var gene in fittest.Genes)
+            {
+                Log.Trace(System.Convert.ToString((int) gene.RealValue));
+            }
+        }
 
-		private static double RunAlgorithm(Chromosome chromosome)
-		{
-            
-			var sum_sharpe = 0.0;
-			foreach (var gene in chromosome.Genes)
-			{
-				var val = (int)gene.ObjectValue;
-				AppDomain ad = null;
-				RunClass rc = CreateRunClassInAppDomain (ref ad);
-				Console.WriteLine("Running algorithm {0} with value: {1}", runnumber, val);
+        private static void ga_OnGenerationComplete(object sender, GaEventArgs e)
+        {
+            var fittest = e.Population.GetTop(1)[0];
+            var sharpe = RunAlgorithm(fittest);
+            Log.Trace("Generation: {0}, Fitness: {1},Distance: {2}", e.Generation, fittest.Fitness, sharpe);
+        }
 
-			    try
-			    {
-			        sum_sharpe += (double)rc.Run (val);
-			    }
-			    catch (Exception e)
-			    {
-			        Console.WriteLine(e);
-			    }
-			    AppDomain.Unload (ad);
+        public static double CalculateFitness(Chromosome chromosome)
+        {
+            var sharpe = RunAlgorithm(chromosome);
+            return sharpe;
+        }
+
+        private static double RunAlgorithm(Chromosome chromosome)
+        {
+
+            var sum_sharpe = 0.0;
+            foreach (var gene in chromosome.Genes)
+            {
+                var val = (int)gene.ObjectValue;
+                AppDomain ad = null;
+                RunClass rc = CreateRunClassInAppDomain(ref ad);
+                Console.WriteLine("Running algorithm {0} with value: {1}", runnumber, val);
+
+                try
+                {
+                    sum_sharpe += (double)rc.Run(val);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.Message + e.StackTrace);
+                }
+                AppDomain.Unload(ad);
                 runnumber++;
-			}
+            }
 
-			return sum_sharpe;
-		}
+            return sum_sharpe;
+        }
 
-		public static bool Terminate(Population population, 
-			int currentGeneration, long currentEvaluation)
-		{
-			return currentGeneration > 400;
-		}
+        public static bool Terminate(Population population,
+            int currentGeneration, long currentEvaluation)
+        {
+            return currentGeneration > 400;
+        }
 
 
-	}
+    }
 }
 
