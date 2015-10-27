@@ -274,32 +274,32 @@ namespace QuantConnect.Lean.Engine.Results
         {
             var chartFilename = Path.Combine(_chartDirectory, chartName + "-" + seriesName + ".csv");
 
-            //lock (_chartLock)
-            //{
-            //    // Add line to list in dictionary, will be written to file at the end
-            //    List<string> rows;
-            //    if (!_equityResults.TryGetValue(chartFilename, out rows))
-            //    {
-            //        rows = new List<string>();
-            //        _equityResults[chartFilename] = rows;
-            //    }
-            //    rows.Add(time + "," + value.ToString("F2", CultureInfo.InvariantCulture));
+            lock (_chartLock)
+            {
+                // Add line to list in dictionary, will be written to file at the end
+                List<string> rows;
+                if (!_equityResults.TryGetValue(chartFilename, out rows))
+                {
+                    rows = new List<string>();
+                    _equityResults[chartFilename] = rows;
+                }
+                rows.Add(time + "," + value.ToString("F2", CultureInfo.InvariantCulture));
 
-            //    //Add a copy locally:
-            //    if (!Charts.ContainsKey(chartName))
-            //    {
-            //        Charts.AddOrUpdate<string, Chart>(chartName, new Chart(chartName, chartType));
-            //    }
+                //Add a copy locally:
+                if (!Charts.ContainsKey(chartName))
+                {
+                    Charts.AddOrUpdate<string, Chart>(chartName, new Chart(chartName, chartType));
+                }
 
-            //    //Add the sample to our chart:
-            //    if (!Charts[chartName].Series.ContainsKey(seriesName))
-            //    {
-            //        Charts[chartName].Series.Add(seriesName, new Series(seriesName, seriesType));
-            //    }
+                //Add the sample to our chart:
+                if (!Charts[chartName].Series.ContainsKey(seriesName))
+                {
+                    Charts[chartName].Series.Add(seriesName, new Series(seriesName, seriesType));
+                }
 
-            //    //Add our value:
-            //    Charts[chartName].Series[seriesName].Values.Add(new ChartPoint(time, value));
-            //}
+                //Add our value:
+                Charts[chartName].Series[seriesName].Values.Add(new ChartPoint(time, value));
+            }
         }
 
         /// <summary>
