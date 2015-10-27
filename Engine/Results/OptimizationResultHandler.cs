@@ -179,7 +179,7 @@ namespace QuantConnect.Lean.Engine.Results
                 }
                 Directory.Delete(_chartDirectory, true);
             }
-            //Directory.CreateDirectory(_chartDirectory);
+            Directory.CreateDirectory(_chartDirectory);
             _messagingHandler = messagingHandler;
 
         }

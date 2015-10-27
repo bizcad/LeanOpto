@@ -87,8 +87,8 @@ namespace Optimization
             _historyProvider = new SubscriptionDataReaderHistoryProvider();
             _transactions = new BacktestingTransactionHandler();
             Log.LogHandler = (ILogHandler)new FileLogHandler();
-            Log.DebuggingEnabled = true;
-            Log.DebuggingLevel = 0;
+            Log.DebuggingEnabled = false;
+            Log.DebuggingLevel = 1;
 
             var systemHandlers = new LeanEngineSystemHandlers(_jobQueue, _api, _notify);
             systemHandlers.Initialize();
