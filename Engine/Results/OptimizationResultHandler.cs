@@ -372,30 +372,30 @@ namespace QuantConnect.Lean.Engine.Results
         /// <param name="updates">Charting updates since the last sample request.</param>
         public void SampleRange(List<Chart> updates)
         {
-            //lock (_chartLock)
-            //{
-            //    foreach (var update in updates)
-            //    {
-            //        //Create the chart if it doesn't exist already:
-            //        if (!Charts.ContainsKey(update.Name))
-            //        {
-            //            Charts.AddOrUpdate(update.Name, new Chart(update.Name, update.ChartType));
-            //        }
+            lock (_chartLock)
+            {
+                foreach (var update in updates)
+                {
+                    //Create the chart if it doesn't exist already:
+                    if (!Charts.ContainsKey(update.Name))
+                    {
+                        Charts.AddOrUpdate(update.Name, new Chart(update.Name, update.ChartType));
+                    }
 
-            //        //Add these samples to this chart.
-            //        foreach (var series in update.Series.Values)
-            //        {
-            //            //If we don't already have this record, its the first packet
-            //            if (!Charts[update.Name].Series.ContainsKey(series.Name))
-            //            {
-            //                Charts[update.Name].Series.Add(series.Name, new Series(series.Name, series.SeriesType));
-            //            }
+                    //Add these samples to this chart.
+                    foreach (var series in update.Series.Values)
+                    {
+                        //If we don't already have this record, its the first packet
+                        if (!Charts[update.Name].Series.ContainsKey(series.Name))
+                        {
+                            Charts[update.Name].Series.Add(series.Name, new Series(series.Name, series.SeriesType));
+                        }
 
-            //            //We already have this record, so just the new samples to the end:
-            //            Charts[update.Name].Series[series.Name].Values.AddRange(series.Values);
-            //        }
-            //    }
-            //}
+                        //We already have this record, so just the new samples to the end:
+                        Charts[update.Name].Series[series.Name].Values.AddRange(series.Values);
+                    }
+                }
+            }
         }
 
         /// <summary>
