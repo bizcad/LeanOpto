@@ -28,8 +28,8 @@
     // time loop location
     "algorithm-manager-time-loop-maximum":  "10.0",
     // engine
-    //"data-folder": "../../../Data/",
-    "data-folder": "H:\\GoogleFinanceData\\",
+    "data-folder": "../../../Data/",
+    //"data-folder": "H:\\GoogleFinanceData\\",
 
     "plugin-directory": "",
 
