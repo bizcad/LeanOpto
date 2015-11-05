@@ -374,7 +374,7 @@ namespace QuantConnect.Lean.Engine.Results
         {
             lock (_chartLock)
             {
-                foreach (var update in updates)
+                foreach (var    update in updates)
                 {
                     //Create the chart if it doesn't exist already:
                     if (!Charts.ContainsKey(update.Name))

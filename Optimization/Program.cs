@@ -266,10 +266,12 @@ namespace Optimization
                 AppDomain ad = null;
                 RunClass rc = CreateRunClassInAppDomain(ref ad);
                 Console.WriteLine("Running algorithm {0} with value: {1}", runnumber, val);
-
+                
                 try
                 {
                     sum_sharpe += (double)rc.Run(val);
+                    if (runnumber > 1721)
+                        Log.Trace("run number {0}", runnumber);
                 }
                 catch (Exception e)
                 {
